@@ -130,6 +130,10 @@ pub fn init_winit(
                     .map(MeltRenderElement::Decoration)
                     .collect();
 
+                // Arrange layer surfaces (like waybar)
+                let mut layer_map = smithay::desktop::layer_map_for_output(&output);
+                layer_map.arrange();
+
                 {
                     let (renderer, mut framebuffer) = backend.bind().unwrap();
                     smithay::desktop::space::render_output::<

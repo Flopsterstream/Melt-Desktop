@@ -17,20 +17,28 @@ impl WlrLayerShellHandler for MeltState {
     fn new_layer_surface(
         &mut self,
         surface: WlrLayerSurface,
-        output: Option<WlOutput>,
+        wl_output: Option<WlOutput>,
         _layer: Layer,
         namespace: String,
     ) {
+        use smithay::desktop::layer_map_for_output;
+        use smithay::output::Output;
+
         tracing::info!("New layer surface created: namespace={}", namespace);
 
+        let output = wl_output
+            .as_ref()
+            .and_then(Output::from_resource)
+            .unwrap_or_else(|| self.space.outputs().next().unwrap().clone());
+
+        let mut map = layer_map_for_output(&output);
         let layer_surface = LayerSurface::new(surface, namespace);
-        // For a full implementation, we would store this in a `LayerMap` per output
-        // and arrange it according to exclusive zones and margins.
-        // For now, we simply track it or rely on external rendering.
+        map.map_layer(&layer_surface).unwrap();
     }
 
     fn layer_destroyed(&mut self, surface: WlrLayerSurface) {
         tracing::info!("Layer surface destroyed");
+        // It will be automatically cleaned up from the layer map when the wl_surface is destroyed.
     }
 }
 
