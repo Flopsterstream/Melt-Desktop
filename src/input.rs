@@ -19,14 +19,116 @@ impl MeltState {
             InputEvent::Keyboard { event, .. } => {
                 let serial = SERIAL_COUNTER.next_serial();
                 let time = Event::time_msec(&event);
+                let key_state = event.state();
 
                 self.seat.get_keyboard().unwrap().input::<(), _>(
                     self,
                     event.key_code(),
-                    event.state(),
+                    key_state,
                     serial,
                     time,
-                    |_, _, _| FilterResult::Forward,
+                    |state, modifiers, handle| {
+                        use smithay::backend::input::KeyState;
+                        use smithay::input::keyboard::keysyms;
+
+                        // Check Alt key for Mnemonic mode
+                        if modifiers.alt && !modifiers.ctrl && !modifiers.shift && !modifiers.logo {
+                            if !state.mnemonic_engine.is_active() {
+                                tracing::info!("Entering Mnemonic mode");
+                                state.mnemonic_engine.activate();
+                            }
+                        } else {
+                            if state.mnemonic_engine.is_active() {
+                                tracing::info!("Exiting Mnemonic mode");
+                                state.mnemonic_engine.deactivate();
+                            }
+                        }
+
+                        if key_state == KeyState::Pressed {
+                            let keysym = handle.modified_sym();
+                            let k: u32 = keysym.into(); // Keysym to u32
+
+                            // 1. Mnemonic Action matching
+                            if state.mnemonic_engine.is_active() {
+                                // Simple mapping for alphabetic keys
+                                let key_char = match k {
+                                    keysyms::KEY_a..=keysyms::KEY_z => Some((k - keysyms::KEY_a + b'a' as u32) as u8 as char),
+                                    _ => None,
+                                };
+                                
+                                if let Some(c) = key_char {
+                                    if let Some(action) = state.mnemonic_engine.match_key(c).map(|a| a.to_string()) {
+                                        tracing::info!("Mnemonic triggered: {}", action);
+                                        match action.as_str() {
+                                            "terminal" => {
+                                                let term = state.config.general.terminal.clone();
+                                                std::process::Command::new(&term).spawn().ok();
+                                            }
+                                            "close_window" => {
+                                                if let Some(focus) = state.seat.get_keyboard().unwrap().current_focus() {
+                                                    state.space.elements().find(|w| {
+                                                        w.toplevel().map_or(false, |tl| tl.wl_surface() == &focus)
+                                                    }).map(|w| w.toplevel().unwrap().send_close());
+                                                }
+                                            }
+                                            "workspace_1" => { state.workspace_manager.switch_to(0); },
+                                            "workspace_2" => { state.workspace_manager.switch_to(1); },
+                                            _ => {}
+                                        }
+                                        return FilterResult::Intercept(());
+                                    }
+                                }
+                            }
+
+                            // 2. Global Keybindings
+                            if modifiers.logo {
+                                match k {
+                                    keysyms::KEY_Return => {
+                                        let term = state.config.general.terminal.clone();
+                                        std::process::Command::new(&term).spawn().ok();
+                                        return FilterResult::Intercept(());
+                                    }
+                                    keysyms::KEY_q => {
+                                        tracing::info!("Super+Q pressed: Closing window");
+                                        if let Some(focus) = state.seat.get_keyboard().unwrap().current_focus() {
+                                            state.space.elements().find(|w| {
+                                                w.toplevel().map_or(false, |tl| tl.wl_surface() == &focus)
+                                            }).map(|w| w.toplevel().unwrap().send_close());
+                                        }
+                                        return FilterResult::Intercept(());
+                                    }
+                                    keysyms::KEY_1 => {
+                                        state.workspace_manager.switch_to(0);
+                                        return FilterResult::Intercept(());
+                                    }
+                                    keysyms::KEY_2 => {
+                                        state.workspace_manager.switch_to(1);
+                                        return FilterResult::Intercept(());
+                                    }
+                                    _ => {}
+                                }
+                            } else if modifiers.alt {
+                                match k {
+                                    keysyms::KEY_Tab => {
+                                        tracing::info!("Alt+Tab pressed");
+                                        return FilterResult::Intercept(());
+                                    }
+                                    keysyms::KEY_F4 => {
+                                        tracing::info!("Alt+F4 pressed");
+                                        if let Some(focus) = state.seat.get_keyboard().unwrap().current_focus() {
+                                            state.space.elements().find(|w| {
+                                                w.toplevel().map_or(false, |tl| tl.wl_surface() == &focus)
+                                            }).map(|w| w.toplevel().unwrap().send_close());
+                                        }
+                                        return FilterResult::Intercept(());
+                                    }
+                                    _ => {}
+                                }
+                            }
+                        }
+
+                        FilterResult::Forward
+                    },
                 );
             }
             InputEvent::PointerMotion { .. } => {}

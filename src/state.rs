@@ -113,7 +113,11 @@ impl MeltState {
         let focus_policy = FocusPolicy::from_str(&config.general.focus_policy);
         let focus_manager = FocusManager::new(focus_policy);
         let workspace_manager = WorkspaceManager::new(4);
-        let mnemonic_engine = MnemonicEngine::new();
+        let mut mnemonic_engine = MnemonicEngine::new();
+        mnemonic_engine.register('t', "Terminal".into(), "terminal".into());
+        mnemonic_engine.register('q', "Close Window".into(), "close_window".into());
+        mnemonic_engine.register('1', "Workspace 1".into(), "workspace_1".into());
+        mnemonic_engine.register('2', "Workspace 2".into(), "workspace_2".into());
         let decoration_config = DecorationConfig::from_config(&config);
 
         Self {
