@@ -136,6 +136,19 @@ pub fn init_winit(
                     layer_map.arrange();
                 }
 
+                // Export window list for waybar custom module
+                unsafe {
+                    static mut LAST_UPDATE: Option<std::time::Instant> = None;
+                    let now = std::time::Instant::now();
+                    if LAST_UPDATE.is_none() || now.duration_since(LAST_UPDATE.unwrap()).as_millis() > 500 {
+                        LAST_UPDATE = Some(now);
+                        let count = state.space.elements().count();
+                        let text = if count == 0 { "Desktop".to_string() } else { format!("APPS: {} Running", count) };
+                        let json = format!(r#"{{"text": "{}"}}"#, text);
+                        let _ = std::fs::write("/tmp/melt_windows.json", json);
+                    }
+                }
+
                 {
                     let (renderer, mut framebuffer) = backend.bind().unwrap();
                     smithay::desktop::space::render_output::<
