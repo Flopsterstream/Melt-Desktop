@@ -95,13 +95,22 @@ pub fn init_winit(
                     .space
                     .elements()
                     .filter_map(|window: &Window| {
+                        use smithay::reexports::wayland_protocols::xdg::decoration::zv1::server::zxdg_toplevel_decoration_v1::Mode;
+
+                        let toplevel = window.toplevel()?;
+                        let wl_surface = toplevel.wl_surface();
+
+                        let wants_ssd = toplevel.current_state().decoration_mode == Some(Mode::ServerSide);
+
+                        if !wants_ssd {
+                            return None;
+                        }
+
                         let loc = state.space.element_location(window)?;
                         let geo = window.geometry();
 
                         let is_active = focused_surface.as_ref().map_or(false, |focus| {
-                            window.toplevel().map_or(false, |tl| {
-                                *focus == *tl.wl_surface()
-                            })
+                            *focus == *wl_surface
                         });
 
                         Some(WindowDecorations::generate(
