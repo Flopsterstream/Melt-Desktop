@@ -11,39 +11,35 @@
     "modules-right": ["network", "pulseaudio", "battery"],
 
     "custom/melt": {
-        "format": "🔥 Melt Desktop",
+        "format": "Melt Desktop",
         "tooltip": false
     },
     "clock": {
-        "format": "🕒 {:%H:%M  |  📅 %b %d}",
+        "format": "TIME: {:%H:%M} | DATE: {%b %d}",
         "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
     },
     "cpu": {
-        "format": "💻 {usage}%",
+        "format": "CPU: {usage}%",
         "tooltip": false
     },
     "memory": {
-        "format": "🧠 {}%"
+        "format": "RAM: {}%"
     },
     "network": {
-        "format-wifi": "🌐 {essid}",
-        "format-ethernet": "🌐 Connected",
-        "format-disconnected": "⚠️ Disconnected"
+        "format-wifi": "NET: {essid}",
+        "format-ethernet": "NET: Wired",
+        "format-disconnected": "NET: Offline"
     },
     "pulseaudio": {
-        "format": "{icon}  {volume}%",
-        "format-muted": "🔇 Muted",
-        "format-icons": {
-            "default": ["🔈", "🔉", "🔊"]
-        }
+        "format": "VOL: {volume}%",
+        "format-muted": "VOL: Muted"
     },
     "battery": {
         "states": {
             "warning": 30,
             "critical": 15
         },
-        "format": "{icon}  {capacity}%",
-        "format-charging": "⚡ {capacity}%",
-        "format-icons": ["🔋", "🔋", "🔋", "🔋", "🔋"]
+        "format": "BAT: {capacity}%",
+        "format-charging": "CHG: {capacity}%"
     }
 }
