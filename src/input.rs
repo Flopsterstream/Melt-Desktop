@@ -237,11 +237,27 @@ impl MeltState {
                             window.toplevel().unwrap().send_pending_configure();
                         });
                     } else {
-                        self.space.elements().for_each(|window| {
-                            window.set_activated(false);
-                            window.toplevel().unwrap().send_pending_configure();
-                        });
-                        keyboard.set_focus(self, Option::<WlSurface>::None, serial);
+                        // Check if we clicked on a layer surface
+                        let mut clicked_layer = false;
+                        if let Some(output) = self.space.outputs().next() {
+                            use smithay::wayland::shell::wlr_layer::Layer;
+                            let layer_map = smithay::desktop::layer_map_for_output(output);
+                            for layer_type in [Layer::Overlay, Layer::Top, Layer::Bottom, Layer::Background] {
+                                if layer_map.layer_under(layer_type, ptr_loc).is_some() {
+                                    clicked_layer = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Only clear focus if we clicked on empty desktop space
+                        if !clicked_layer {
+                            self.space.elements().for_each(|window| {
+                                window.set_activated(false);
+                                window.toplevel().unwrap().send_pending_configure();
+                            });
+                            keyboard.set_focus(self, Option::<WlSurface>::None, serial);
+                        }
                     }
                 };
 

@@ -193,6 +193,22 @@ impl MeltState {
     }
 
     pub fn surface_under(&self, pos: Point<f64, Logical>) -> Option<(WlSurface, Point<f64, Logical>)> {
+        // 1. Check layer surfaces (Top/Overlay usually above windows)
+        if let Some(output) = self.space.outputs().next() {
+            use smithay::wayland::shell::wlr_layer::Layer;
+            let layer_map = smithay::desktop::layer_map_for_output(output);
+            
+            for layer_type in [Layer::Overlay, Layer::Top, Layer::Bottom, Layer::Background] {
+                if let Some(layer) = layer_map.layer_under(layer_type, pos) {
+                    let layer_loc = layer_map.layer_geometry(layer).unwrap().loc;
+                    if let Some((s, p)) = layer.surface_under(pos - layer_loc.to_f64(), WindowSurfaceType::ALL) {
+                        return Some((s, (p + layer_loc).to_f64()));
+                    }
+                }
+            }
+        }
+
+        // 2. Check regular windows
         self.space.element_under(pos).and_then(|(window, location)| {
             window
                 .surface_under(pos - location.to_f64(), WindowSurfaceType::ALL)
