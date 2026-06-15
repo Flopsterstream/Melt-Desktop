@@ -1,6 +1,8 @@
 mod compositor;
 mod xdg_shell;
 mod xdg_decoration;
+mod session_lock;
+mod security_context;
 
 use crate::MeltState;
 

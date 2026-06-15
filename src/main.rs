@@ -7,7 +7,11 @@ pub mod theme;
 pub mod config;
 mod input;
 mod state;
+#[cfg(feature = "winit")]
 mod winit;
+
+#[cfg(feature = "native")]
+mod native;
 
 mod stacking;
 mod workspaces;
@@ -52,7 +56,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         display_handle,
     };
 
-    crate::winit::init_winit(&mut event_loop, &mut data)?;
+    let is_winit = std::env::args().any(|arg| arg == "--winit");
+
+    #[cfg(feature = "native")]
+    if !is_winit {
+        crate::native::init_native(&mut event_loop, &mut data)?;
+    }
+    
+    #[cfg(feature = "winit")]
+    if is_winit {
+        crate::winit::init_winit(&mut event_loop, &mut data)?;
+    }
 
     let mut args = std::env::args().skip(1);
     let flag = args.next();
