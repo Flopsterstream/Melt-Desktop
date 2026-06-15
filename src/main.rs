@@ -14,6 +14,7 @@ mod workspaces;
 mod focus;
 mod animations;
 mod mnemonics;
+mod decorations;
 
 use smithay::reexports::{
     calloop::EventLoop,

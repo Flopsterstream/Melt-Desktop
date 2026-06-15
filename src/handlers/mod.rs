@@ -1,5 +1,6 @@
 mod compositor;
 mod xdg_shell;
+mod xdg_decoration;
 
 use crate::MeltState;
 

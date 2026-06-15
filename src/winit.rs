@@ -3,16 +3,31 @@ use std::time::Duration;
 use smithay::{
     backend::{
         renderer::{
-            damage::OutputDamageTracker, element::surface::WaylandSurfaceRenderElement, gles::GlesRenderer,
+            damage::OutputDamageTracker,
+            element::surface::WaylandSurfaceRenderElement,
+            element::solid::SolidColorRenderElement,
+            gles::GlesRenderer,
         },
         winit::{self, WinitEvent},
     },
+    desktop::Window,
     output::{Mode, Output, PhysicalProperties, Subpixel},
     reexports::calloop::EventLoop,
+    render_elements,
     utils::{Rectangle, Transform},
 };
 
+use crate::decorations::WindowDecorations;
 use crate::{CalloopData, MeltState};
+
+// Unified render element enum so that both surface content and solid-color
+// decoration geometry can be passed to `render_output` through a single
+// type parameter.
+render_elements! {
+    pub MeltRenderElement<=GlesRenderer>;
+    Surface=WaylandSurfaceRenderElement<GlesRenderer>,
+    Decoration=SolidColorRenderElement,
+}
 
 pub fn init_winit(
     event_loop: &mut EventLoop<CalloopData>,
@@ -68,11 +83,49 @@ pub fn init_winit(
                 let size = backend.window_size();
                 let damage = Rectangle::from_size(size);
 
+                // ── Collect decoration elements for every mapped window ──
+                let focused_surface = state
+                    .seat
+                    .get_keyboard()
+                    .and_then(|kb| {
+                        kb.current_focus()
+                    });
+
+                let decoration_elements: Vec<SolidColorRenderElement> = state
+                    .space
+                    .elements()
+                    .filter_map(|window: &Window| {
+                        let loc = state.space.element_location(window)?;
+                        let geo = window.geometry();
+
+                        let is_active = focused_surface.as_ref().map_or(false, |focus| {
+                            window.toplevel().map_or(false, |tl| {
+                                *focus == *tl.wl_surface()
+                            })
+                        });
+
+                        Some(WindowDecorations::generate(
+                            loc,
+                            geo.size,
+                            is_active,
+                            &state.theme,
+                            &state.decoration_config,
+                        ))
+                    })
+                    .flatten()
+                    .collect();
+
+                // Convert to the unified element type for custom_elements.
+                let custom: Vec<MeltRenderElement> = decoration_elements
+                    .into_iter()
+                    .map(MeltRenderElement::Decoration)
+                    .collect();
+
                 {
                     let (renderer, mut framebuffer) = backend.bind().unwrap();
                     smithay::desktop::space::render_output::<
                         _,
-                        WaylandSurfaceRenderElement<GlesRenderer>,
+                        MeltRenderElement,
                         _,
                         _,
                     >(
@@ -82,7 +135,7 @@ pub fn init_winit(
                         1.0,
                         0,
                         [&state.space],
-                        &[],
+                        &custom,
                         &mut damage_tracker,
                         [0.1, 0.1, 0.1, 1.0],
                     )
@@ -115,3 +168,4 @@ pub fn init_winit(
 
     Ok(())
 }
+

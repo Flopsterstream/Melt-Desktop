@@ -16,7 +16,10 @@ use smithay::{
         compositor::{CompositorClientState, CompositorState},
         output::OutputManagerState,
         selection::data_device::DataDeviceState,
-        shell::xdg::XdgShellState,
+        shell::xdg::{
+            XdgShellState,
+            decoration::XdgDecorationState,
+        },
         shm::ShmState,
         socket::ListeningSocketSource,
     },
@@ -29,6 +32,7 @@ use crate::theme::ThemeColors;
 use crate::focus::{FocusManager, FocusPolicy};
 use crate::workspaces::WorkspaceManager;
 use crate::mnemonics::MnemonicEngine;
+use crate::decorations::DecorationConfig;
 
 pub struct MeltState {
     pub start_time: std::time::Instant,
@@ -45,6 +49,7 @@ pub struct MeltState {
     pub output_manager_state: OutputManagerState,
     pub seat_state: SeatState<MeltState>,
     pub data_device_state: DataDeviceState,
+    pub xdg_decoration_state: XdgDecorationState,
     pub popups: PopupManager,
 
     pub seat: Seat<Self>,
@@ -55,6 +60,7 @@ pub struct MeltState {
     pub focus_manager: FocusManager,
     pub workspace_manager: WorkspaceManager,
     pub mnemonic_engine: MnemonicEngine,
+    pub decoration_config: DecorationConfig,
 }
 
 impl MeltState {
@@ -69,6 +75,7 @@ impl MeltState {
         let output_manager_state = OutputManagerState::new_with_xdg_output::<Self>(&dh);
         let mut seat_state = SeatState::new();
         let data_device_state = DataDeviceState::new::<Self>(&dh);
+        let xdg_decoration_state = XdgDecorationState::new::<Self>(&dh);
         let popups = PopupManager::default();
 
         // A seat is a group of keyboards, pointer and touch devices.
@@ -101,6 +108,7 @@ impl MeltState {
         let focus_manager = FocusManager::new(focus_policy);
         let workspace_manager = WorkspaceManager::new(4);
         let mnemonic_engine = MnemonicEngine::new();
+        let decoration_config = DecorationConfig::from_config(&config);
 
         Self {
             start_time,
@@ -116,6 +124,7 @@ impl MeltState {
             output_manager_state,
             seat_state,
             data_device_state,
+            xdg_decoration_state,
             popups,
             seat,
 
@@ -124,6 +133,7 @@ impl MeltState {
             focus_manager,
             workspace_manager,
             mnemonic_engine,
+            decoration_config,
         }
     }
 
