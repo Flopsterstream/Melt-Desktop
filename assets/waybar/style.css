@@ -1,0 +1,57 @@
+* {
+    border: none;
+    border-radius: 0;
+    font-family: 'Inter', 'Roboto', 'Font Awesome 5 Free', 'Font Awesome 5 Brands', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+window#waybar {
+    background: rgba(20, 20, 25, 0.7);
+    color: #E2E2E2;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+#custom-melt {
+    color: #FF5E3A;
+    background: rgba(255, 94, 58, 0.1);
+    border-radius: 14px;
+    padding: 0 16px;
+    margin: 4px 0 4px 8px;
+    transition: all 0.3s ease;
+}
+
+#custom-melt:hover {
+    background: rgba(255, 94, 58, 0.2);
+    box-shadow: 0 0 10px rgba(255, 94, 58, 0.4);
+}
+
+#clock, #battery, #cpu, #memory, #network, #pulseaudio {
+    padding: 0 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    margin: 6px 4px;
+    transition: all 0.3s ease;
+}
+
+#clock:hover, #battery:hover, #cpu:hover, #memory:hover, #network:hover, #pulseaudio:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#clock {
+    color: #82A2FF;
+    background: rgba(130, 162, 255, 0.1);
+}
+
+#clock:hover {
+    background: rgba(130, 162, 255, 0.2);
+    box-shadow: 0 0 10px rgba(130, 162, 255, 0.4);
+}
+
+#battery { color: #8BE9FD; }
+#cpu { color: #FF79C6; }
+#memory { color: #F1FA8C; }
+#network { color: #50FA7B; }
+#pulseaudio { color: #FFB86C; }
