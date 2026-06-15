@@ -3,6 +3,7 @@ mod xdg_shell;
 mod xdg_decoration;
 mod session_lock;
 mod security_context;
+mod layer_shell;
 
 use crate::MeltState;
 

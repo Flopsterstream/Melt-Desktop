@@ -52,6 +52,7 @@ pub struct MeltState {
     pub xdg_decoration_state: XdgDecorationState,
     pub session_lock_state: smithay::wayland::session_lock::SessionLockManagerState,
     pub security_context_state: smithay::wayland::security_context::SecurityContextState,
+    pub layer_shell_state: smithay::wayland::shell::wlr_layer::WlrLayerShellState,
     pub popups: PopupManager,
 
     pub seat: Seat<Self>,
@@ -80,6 +81,7 @@ impl MeltState {
         let xdg_decoration_state = XdgDecorationState::new::<Self>(&dh);
         let session_lock_state = smithay::wayland::session_lock::SessionLockManagerState::new::<Self, _>(&dh, |_| true);
         let security_context_state = smithay::wayland::security_context::SecurityContextState::new::<Self, _>(&dh, |_| true);
+        let layer_shell_state = smithay::wayland::shell::wlr_layer::WlrLayerShellState::new::<Self>(&dh);
         let popups = PopupManager::default();
 
         // A seat is a group of keyboards, pointer and touch devices.
@@ -131,6 +133,7 @@ impl MeltState {
             xdg_decoration_state,
             session_lock_state,
             security_context_state,
+            layer_shell_state,
             popups,
             seat,
 
