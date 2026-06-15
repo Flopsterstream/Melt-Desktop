@@ -131,8 +131,10 @@ pub fn init_winit(
                     .collect();
 
                 // Arrange layer surfaces (like waybar)
-                let mut layer_map = smithay::desktop::layer_map_for_output(&output);
-                layer_map.arrange();
+                {
+                    let mut layer_map = smithay::desktop::layer_map_for_output(&output);
+                    layer_map.arrange();
+                }
 
                 {
                     let (renderer, mut framebuffer) = backend.bind().unwrap();
