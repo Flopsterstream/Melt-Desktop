@@ -1,0 +1,110 @@
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  Melt Desktop – default configuration                              ║
+# ║  Copy to ~/.config/melt/config.toml and edit to taste.             ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+# ── General ──────────────────────────────────────────────────────────────
+
+[general]
+# Default terminal emulator (launched by Mod4+Return).
+terminal = "foot"
+
+# Focus policy: "click" (click-to-focus) or "follow" (focus-follows-mouse).
+focus_policy = "click"
+
+# XCursor theme name.
+cursor_theme = "default"
+
+# XCursor size in pixels.
+cursor_size = 24
+
+# Start the XWayland compatibility layer on launch.
+xwayland = false
+
+# ── Appearance ───────────────────────────────────────────────────────────
+
+[appearance]
+# Use dark-mode colour defaults.
+dark_mode = true
+
+# Window border width in pixels.
+border_width = 2
+
+# Server-side title-bar height in pixels (set to 0 to disable).
+title_bar_height = 30
+
+# Render soft shadows behind windows.
+shadow_enabled = true
+
+# Shadow blur radius in pixels.
+shadow_radius = 12
+
+# Shadow opacity (0.0 = invisible, 1.0 = fully opaque).
+shadow_opacity = 0.4
+
+# ── Theme colours (Catppuccin Mocha) ─────────────────────────────────────
+# All values are CSS-style hex strings.  Use #RRGGBB or #RRGGBBAA.
+
+[appearance.colors]
+bg_primary       = "#1e1e2e"
+bg_surface       = "#313244"
+text_primary     = "#cdd6f4"
+accent           = "#89b4fa"
+border_active    = "#89b4fa"
+border_inactive  = "#45475a"
+shadow_color     = "#00000066"
+title_bar_bg     = "#181825"
+title_bar_text   = "#cdd6f4"
+button_close     = "#f38ba8"
+button_maximize  = "#a6e3a1"
+button_minimize  = "#f9e2af"
+
+# ── Animation ────────────────────────────────────────────────────────────
+
+[animation]
+# Master toggle – set to false to disable all animations.
+enabled = true
+
+# Duration of the window-open animation (milliseconds).
+window_open_duration_ms = 150
+
+# Duration of the window-close animation (milliseconds).
+window_close_duration_ms = 120
+
+# Duration of the workspace-switch animation (milliseconds).
+workspace_switch_duration_ms = 250
+
+# Easing function: "linear", "ease-in", "ease-out", "ease-out-cubic", etc.
+easing = "ease-out-cubic"
+
+# ── Security ─────────────────────────────────────────────────────────────
+
+[security]
+# App IDs allowed to manage the clipboard (e.g. clipboard history daemons).
+clipboard_manager_app_ids = []
+
+# App IDs permitted to create layer-shell surfaces (panels, overlays).
+layer_shell_allowed_app_ids = []
+
+# ── Keybindings ──────────────────────────────────────────────────────────
+# Format: "Modifiers+Key" = "action" or "spawn:command".
+# Modifiers: Mod4 (Super), Shift, Control, Alt.
+
+[keybindings]
+"Mod4+Return"    = "spawn:foot"
+"Mod4+q"         = "close"
+"Mod4+Shift+e"   = "exit"
+"Mod4+d"         = "spawn:fuzzel"
+
+# ── Window Rules ─────────────────────────────────────────────────────────
+# Match by Wayland app_id.  Optional fields: opacity (0.0–1.0), floating.
+#
+# Example:
+#
+# [[window_rules]]
+# app_id   = "firefox"
+# opacity  = 0.95
+#
+# [[window_rules]]
+# app_id   = "pavucontrol"
+# floating = true
