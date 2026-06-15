@@ -167,6 +167,61 @@ impl MeltState {
                 let button_state = event.state();
 
                 if ButtonState::Pressed == button_state && !pointer.is_grabbed() {
+                    let ptr_loc = pointer.current_location();
+                    
+                    // 1. Check if we clicked on a window decoration (title bar or borders)
+                    let mut decoration_click = None;
+                    for window in self.space.elements() {
+                        if let Some(loc) = self.space.element_location(window) {
+                            let outer_geo = crate::decorations::WindowDecorations::outer_geometry(loc, window.geometry().size, &self.decoration_config);
+                            let inner_geo = smithay::utils::Rectangle::new(loc, window.geometry().size);
+                            let ptr_round = ptr_loc.to_i32_round();
+                            
+                            if outer_geo.contains(ptr_round) && !inner_geo.contains(ptr_round) {
+                                decoration_click = Some((window.clone(), loc));
+                                break;
+                            }
+                        }
+                    }
+
+                    if let Some((window, loc)) = decoration_click {
+                        // Focus the window we clicked on
+                        self.space.raise_element(&window, true);
+                        keyboard.set_focus(
+                            self,
+                            Some(window.toplevel().unwrap().wl_surface().clone()),
+                            serial,
+                        );
+                        self.space.elements().for_each(|w| {
+                            w.toplevel().unwrap().send_pending_configure();
+                        });
+
+                        // Check if we hit a specific button
+                        if let Some(action) = crate::decorations::buttons::hit_test(ptr_loc, loc, window.geometry().size, &self.decoration_config) {
+                            match action {
+                                crate::decorations::buttons::ButtonAction::Close => window.toplevel().unwrap().send_close(),
+                                _ => {} // Maximize and Minimize not fully implemented yet
+                            }
+                        } else {
+                            // Clicked title bar or border, start move grab
+                            let start_data = smithay::input::pointer::GrabStartData {
+                                focus: None,
+                                button,
+                                location: ptr_loc,
+                            };
+                            let grab = crate::grabs::MoveSurfaceGrab {
+                                start_data,
+                                window: window.clone(),
+                                initial_window_location: loc,
+                            };
+                            pointer.set_grab(self, grab, serial, smithay::input::pointer::Focus::Clear);
+                        }
+                        
+                        pointer.frame(self);
+                        return; // Stop processing pointer button
+                    }
+
+                    // 2. Check if we clicked on the window content
                     if let Some((window, _loc)) = self
                         .space
                         .element_under(pointer.current_location())
