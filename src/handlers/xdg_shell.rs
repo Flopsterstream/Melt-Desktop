@@ -34,7 +34,9 @@ impl XdgShellHandler for MeltState {
 
     fn new_toplevel(&mut self, surface: ToplevelSurface) {
         let window = Window::new_wayland_window(surface);
-        self.space.map_element(window, (0, 0), false);
+        // Map at (100, 100) instead of (0, 0) to prevent the top titlebar decoration 
+        // from rendering at negative y-coordinates and getting clipped off-screen.
+        self.space.map_element(window, (100, 100), false);
     }
 
     fn new_popup(&mut self, surface: PopupSurface, _positioner: PositionerState) {
